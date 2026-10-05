@@ -5,37 +5,6 @@ WooCommerce store, built as one small FastAPI + PostgreSQL service with a
 plain HTML/CSS/JS front end (no build step). The bundled demo data is entirely
 fake, for a made-up shop called *Acme Home Store*.
 
-![Overview](docs/screenshots/dashboard-overview.png)
-
-| Warehouse tab | Storage app (pick list) |
-|---|---|
-| ![Warehouse](docs/screenshots/dashboard-warehouse.png) | ![Pick list](docs/screenshots/storage-pick-list.png) |
-
-Also in the repo: [Arabic / right-to-left view](docs/screenshots/dashboard-overview-ar.png),
-[dark mode](docs/screenshots/dashboard-overview-dark.png),
-[sales & returns](docs/screenshots/dashboard-sales.png),
-[orders to pack](docs/screenshots/storage-orders.png).
-
-## What it does
-
-- **Dashboard:** sales, orders, average order value, customers, % change versus
-  the previous period (with an explicit "no comparison data" state), sales
-  over time, order statuses, payment methods and success rate, top products,
-  categories, returns, new vs returning customers, a weekday × hour heat map,
-  cancellations. English and Arabic (RTL), light and dark.
-- **Warehouse tab:** shipped today vs ready today, packing backlog by age,
-  packed-to-truck time, per-carrier delivery times.
-- **Storage app (`/storage`):** pick list, orders to pack (1 / 2 / 3+ pieces),
-  barcode scanning of every piece, box count check against the shipping
-  platform, packed list, loading boxes onto the carrier's truck, printable
-  sheets with a driver signature block.
-- **Sync:** one-off backfill, a reconciliation loop that keeps the database
-  within minutes of the store, safe to interrupt and re-run.
-
-**Core rule:** the dashboard never queries WooCommerce. Store data is synced
-into PostgreSQL and every dashboard query runs against that, so it stays fast
-even when the store is slow. Design decisions: [docs/DESIGN.md](docs/DESIGN.md).
-
 ## Run the demo (about two minutes)
 
 Needs Python 3.10+ and Docker.
@@ -68,6 +37,39 @@ and warehouse tables, so only use it on a demo database.
 
 Production: a Docker Compose stack with sync, nightly backups and a
 Cloudflare Tunnel is in [deploy/RUNBOOK.md](deploy/RUNBOOK.md).
+
+![Overview](docs/screenshots/dashboard-overview.png)
+
+| Warehouse tab | Storage app (pick list) |
+|---|---|
+| ![Warehouse](docs/screenshots/dashboard-warehouse.png) | ![Pick list](docs/screenshots/storage-pick-list.png) |
+
+Also in the repo: [Arabic / right-to-left view](docs/screenshots/dashboard-overview-ar.png),
+[dark mode](docs/screenshots/dashboard-overview-dark.png),
+[sales & returns](docs/screenshots/dashboard-sales.png),
+[orders to pack](docs/screenshots/storage-orders.png).
+
+## What it does
+
+- **Dashboard:** sales, orders, average order value, customers, % change versus
+  the previous period (with an explicit "no comparison data" state), sales
+  over time, order statuses, payment methods and success rate, top products,
+  categories, returns, new vs returning customers, a weekday × hour heat map,
+  cancellations. English and Arabic (RTL), light and dark.
+- **Warehouse tab:** shipped today vs ready today, packing backlog by age,
+  packed-to-truck time, per-carrier delivery times.
+- **Storage app (`/storage`):** pick list, orders to pack (1 / 2 / 3+ pieces),
+  barcode scanning of every piece, box count check against the shipping
+  platform, packed list, loading boxes onto the carrier's truck, printable
+  sheets with a driver signature block.
+- **Sync:** one-off backfill, a reconciliation loop that keeps the database
+  within minutes of the store, safe to interrupt and re-run.
+
+**Core rule:** the dashboard never queries WooCommerce. Store data is synced
+into PostgreSQL and every dashboard query runs against that, so it stays fast
+even when the store is slow. Design decisions: [docs/DESIGN.md](docs/DESIGN.md).
+
+
 
 ## Layout
 
