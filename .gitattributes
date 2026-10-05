@@ -1,0 +1,4 @@
+# Shell scripts run inside Linux containers. Keep them with LF line endings
+# even when checked out on Windows: a CRLF copy fails with "\r: not found"
+# (deploy/backup.sh is mounted into the backup container as-is).
+*.sh text eol=lf

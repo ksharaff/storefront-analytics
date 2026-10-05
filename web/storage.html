@@ -1,0 +1,65 @@
+<!doctype html>
+<!-- The storage app shell (served at /storage). storage.js fills in every word
+     and number; this file is only structure. It reuses the dashboard's
+     styles.css for fonts, colours and cards, plus storage.css for its own
+     screens and the printed pick list. -->
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Storefront Storage</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/img/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="64x64" href="/static/img/logo-64.png">
+  <link rel="apple-touch-icon" href="/static/img/apple-touch-icon.png">
+  <link rel="stylesheet" href="/static/styles.css">
+  <link rel="stylesheet" href="/static/storage.css">
+  <!-- Same saved dark-mode choice as the dashboard (same browser storage key). -->
+  <script>
+    try { if (localStorage.getItem("theme") === "dark") document.documentElement.dataset.theme = "dark"; }
+    catch (e) { /* storage blocked: stay light */ }
+  </script>
+  <script type="module" src="/static/storage.js"></script>
+</head>
+<body class="storage">
+  <header class="topbar">
+    <div class="brand">
+      <!-- The logo is also the way home: it opens the start page. -->
+      <a href="#/" class="brand-link">
+        <img class="brand-mark" src="/static/img/logo-64.png"
+             srcset="/static/img/logo-64.png 1x, /static/img/logo-128.png 2x"
+             width="32" height="32" alt="">
+        <span class="brand-name" id="brand-name"></span>
+      </a>
+    </div>
+    <!-- The same section tabs as the dashboard, with Storage selected: the
+         storage app is the dashboard's last tab. The others link back to /. -->
+    <nav id="nav" class="nav-pills" role="tablist"></nav>
+    <div class="topbar-end">
+      <button id="theme-toggle" class="icon-btn theme" type="button"></button>
+      <button id="lang-toggle" class="icon-btn" type="button"></button>
+    </div>
+  </header>
+
+  <!-- Back button, heading, today's date and the screen's own actions (e.g.
+       Print). Sticky, so the heading and the date stay in view while a long
+       list scrolls underneath. -->
+  <section class="page-head storage-head" id="page-head">
+    <div class="head-main">
+      <a id="back" class="back-btn" hidden></a>
+      <div>
+        <h1 id="page-title"></h1>
+        <p id="page-sub" class="muted"></p>
+      </div>
+    </div>
+    <div class="page-actions">
+      <!-- Today's date (Riyadh) on every Trendyol and Website screen. -->
+      <span id="today" class="today-chip" hidden></span>
+      <span id="page-actions" class="page-actions"></span>
+    </div>
+  </section>
+
+  <div id="banners"></div>
+
+  <main id="content" aria-live="polite"></main>
+</body>
+</html>

@@ -1,0 +1,158 @@
+# Production stack for the Storefront Analytics dashboard, for one small VPS.
+#
+#   cd deploy
+#   docker compose up -d --build        # start / update everything
+#   docker compose ps                   # what's running, and is it healthy
+#   docker compose logs -f sync         # watch the 3-minute sync
+#
+# Full setup, data migration and day-to-day operations: deploy/RUNBOOK.md.
+#
+# Security model, in one line: NOTHING here listens on a public port. The
+# dashboard is reached only through the Cloudflare Tunnel (cloudflared makes
+# an outbound connection to Cloudflare), and Cloudflare Access asks for an
+# emailed one-time PIN before a request ever reaches the tunnel. The VPS
+# firewall can therefore block everything except SSH.
+#
+# All settings and secrets come from deploy/.env (copy .env.example). Compose
+# reads that file both for the ${...} values below and, via env_file, to pass
+# the WooCommerce/database settings into the Python containers.
+
+# A fixed project name, so this stack's containers and volume never collide
+# with the local development database (the root docker-compose.yml) if both
+# ever run on the same machine.
+name: storefront-analytics-prod
+
+# Settings shared by the three services that run our Python image.
+x-python: &python
+  build:
+    context: ..
+    dockerfile: Dockerfile
+  image: storefront-analytics:latest
+  env_file: .env
+  environment:
+    # Inside the Docker network the database is the "db" service on its
+    # normal port — not localhost:5434 as on the development machine.
+    POSTGRES_HOST: db
+    POSTGRES_PORT: "5432"
+  # A tiny init process as PID 1, so `docker compose stop` actually stops the
+  # container at once. (Python or sh as PID 1 ignores the stop signal, and
+  # Docker would wait 10 s and then kill it.)
+  init: true
+  restart: unless-stopped
+  depends_on:
+    db:
+      condition: service_healthy
+  logging: &logging
+    # Cap log files so a months-long sync loop can't fill the disk.
+    driver: json-file
+    options: { max-size: "10m", max-file: "3" }
+
+services:
+  # --- PostgreSQL ----------------------------------------------------------
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    # Same as development: UTC inside the database, whatever the host zone.
+    command: ["postgres", "-c", "timezone=UTC", "-c", "log_timezone=UTC"]
+    volumes:
+      # The data. A named volume survives `down`, rebuilds and reboots;
+      # only `docker compose down -v` deletes it.
+      - pgdata:/var/lib/postgresql/data
+      # Schema + status groups, applied automatically the first time the
+      # volume is created (exactly as in development).
+      - ../db:/docker-entrypoint-initdb.d:ro
+    # No "ports:" on purpose — only the containers below can reach it.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    logging: *logging
+
+  # --- Dashboard + metrics API ---------------------------------------------
+  app:
+    <<: *python
+    # Published on the server's loopback only (127.0.0.1), never on the
+    # public interface: handy for `curl localhost:8000/api/health` on the
+    # server or an SSH tunnel, invisible from the internet.
+    ports:
+      - "127.0.0.1:${APP_PORT:-8000}:8000"
+    healthcheck:
+      # The slim image has no curl; Python's standard library does the job.
+      # /api/health also queries the database, so "healthy" means both work.
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      start_period: 20s
+      retries: 3
+
+  # --- Near-real-time sync -------------------------------------------------
+  # scripts/reconcile.py in loop mode: every SYNC_EVERY seconds, fetch orders
+  # changed since the last clean run (plus their refunds) and upsert them.
+  # A failed run leaves the watermark where it was, so nothing is ever lost.
+  sync:
+    <<: *python
+    command: ["python", "-m", "scripts.reconcile", "--loop", "--every", "${SYNC_EVERY:-180}"]
+
+  # --- Product → category mapping, refreshed daily ------------------------
+  # Runs once when the container starts, then every 24 hours. New products
+  # only matter for "sales by category", so daily is plenty.
+  catalog:
+    <<: *python
+    command:
+      - sh
+      - -c
+      - |
+        while true; do
+          python -m scripts.backfill_products || echo "catalogue refresh failed; will retry in 24 h"
+          sleep 86400
+        done
+
+  # --- Nightly database backup ---------------------------------------------
+  # pg_dump every night at 03:00 Riyadh into deploy/backups/, keeping
+  # BACKUP_KEEP_DAYS days. These copies live on the same server: see the
+  # runbook for taking one off the machine.
+  backup:
+    image: postgres:16
+    # The script, not the database server, is this container's job.
+    entrypoint: ["sh", "/backup.sh"]
+    environment:
+      # libpq's standard variables: pg_dump / pg_restore pick them up.
+      PGHOST: db
+      PGUSER: ${POSTGRES_USER}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB}
+      KEEP_DAYS: ${BACKUP_KEEP_DAYS:-14}
+    volumes:
+      - ./backup.sh:/backup.sh:ro
+      - ./backups:/backups
+    init: true
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    logging: *logging
+
+  # --- Cloudflare Tunnel ---------------------------------------------------
+  # Outbound-only connection to Cloudflare. In the Zero Trust dashboard the
+  # tunnel's public hostname points at http://app:8000.
+  cloudflared:
+    # "latest" is what Cloudflare's own Docker instructions use; to pin, swap
+    # in a release tag from https://github.com/cloudflare/cloudflared/releases
+    image: cloudflare/cloudflared:latest
+    command: ["tunnel", "--no-autoupdate", "run"]
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN}
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+    logging: *logging
+
+volumes:
+  pgdata:

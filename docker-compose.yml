@@ -1,0 +1,38 @@
+# Local PostgreSQL for the analytics dashboard.
+# Start with:  docker compose up -d
+# Stop with:   docker compose down          (data survives — it lives in the named volume)
+# Wipe with:   docker compose down -v       (deletes the volume and all data)
+
+services:
+  db:
+    image: postgres:16
+    container_name: storefront-analytics-db
+    restart: unless-stopped
+    environment:
+      # Read from .env so credentials live in exactly one place.
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    # Force UTC inside the database regardless of the host's timezone, so
+    # stored timestamps and any server-side now() are unambiguous.
+    command: ["postgres", "-c", "timezone=UTC", "-c", "log_timezone=UTC"]
+    ports:
+      # host:container
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      # Named volume = data persists across container restarts.
+      - storefront_pgdata:/var/lib/postgresql/data
+      # Anything in this folder runs automatically the FIRST time the volume
+      # is created, in filename order. So a fresh `docker compose up -d`
+      # gives you a fully built schema with no extra step.
+      - ./db:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      # Lets `docker compose ps` / other services know when Postgres is
+      # actually accepting connections, not just when the container started.
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  storefront_pgdata:

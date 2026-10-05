@@ -1,0 +1,26 @@
+# Keep the image small and, above all, free of secrets.
+# The Dockerfile copies only app/, scripts/ and web/ anyway; this list stops
+# the rest from even being sent to the Docker daemon.
+
+# Secrets — never in an image
+.env
+.env.*
+deploy/.env
+
+# Not needed at runtime
+.git
+.gitignore
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+tests/
+db/
+deploy/
+Claude outputs/
+*.bundle
+*.dump
+*.log
+.vscode/
+.idea/
+README.md

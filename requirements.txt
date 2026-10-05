@@ -1,0 +1,7 @@
+requests==2.32.3        # WooCommerce REST API calls
+python-dotenv==1.0.1    # loads .env so secrets never live in code
+psycopg[binary]==3.2.3  # PostgreSQL driver (v3; [binary] avoids needing a C compiler)
+fastapi==0.141.1        # metrics API
+uvicorn==0.46.0         # runs the API locally: uvicorn app.main:app --reload
+tzdata==2026.4          # Windows has no timezone database; zoneinfo needs this for Asia/Riyadh
+httpx==0.28.1           # tests only: FastAPI's TestClient is built on it

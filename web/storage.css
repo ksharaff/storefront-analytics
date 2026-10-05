@@ -1,0 +1,404 @@
+/* Storefront Storage — styles for the storage app (web/storage.html).
+ *
+ * Built on the dashboard's styles.css: same fonts, colour tokens, cards,
+ * tables and dark mode. This file only adds what the storage screens need:
+ * big touch-friendly choices, the scan screen, and the printed pick list.
+ * Logical properties throughout (inline-start/end), so Arabic mirrors itself.
+ */
+
+/* The storage heading: back button + title on one side, actions on the other. */
+.storage-head { display: flex; justify-content: space-between; align-items: flex-end;
+                gap: 12px 16px; flex-wrap: wrap; }
+/* Sticky: the heading, back button and today's date stay at the top while a
+   long list scrolls underneath. The page colour behind it hides the rows. */
+.storage-head {
+  position: sticky; top: 0; z-index: 5; background: var(--page);
+  padding-top: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
+}
+.page-actions { align-items: center; flex-wrap: wrap; }
+.today-chip {
+  display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;
+  padding: 7px 14px; border-radius: 16px; font-weight: 600;
+  background: var(--surface); border: 1px solid var(--border); color: var(--ink);
+}
+.today-chip .icon { color: var(--accent); }
+/* On list screens the chip holds the chosen days, their window, and the
+   From / To pickers. */
+.batch-text { display: grid; line-height: 1.25; }
+.batch-text small { font-weight: 400; color: var(--ink-2); font-size: 12px; }
+.day-picker {
+  border: 1px solid var(--border); border-radius: 10px; padding: 4px 8px;
+  background: var(--surface-2); color: var(--ink); font-size: 13px;
+}
+.date-field { display: inline-flex; align-items: center; gap: 6px; font-weight: 500; font-size: 13px; }
+.date-field span { color: var(--ink-2); }
+.latest-btn { padding: 4px 12px; font-size: 13px; }
+.today-chip { flex-wrap: wrap; }
+@media (max-width: 720px) {
+  .today-chip { white-space: normal; width: 100%; }
+  .page-actions { width: 100%; }
+}
+/* minmax(0, 1fr): without it the grid column grows to the widest table
+   and the whole page scrolls sideways; wide tables scroll inside their own
+   .table-wrap instead. */
+.stack { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
+.head-main { display: flex; align-items: flex-start; gap: 12px; min-width: 0; }
+.page-actions { display: flex; gap: 8px; }
+.back-btn {
+  display: inline-flex; align-items: center; gap: 4px; margin-top: 4px;
+  padding: 6px 12px 6px 8px; border-radius: 999px; text-decoration: none;
+  color: var(--ink-2); background: var(--surface); border: 1px solid var(--border);
+  font-weight: 500; white-space: nowrap;
+}
+.back-btn:hover { color: var(--ink); background: var(--surface-2); }
+/* The arrow points "back", which is to the right in Arabic. */
+html[dir="rtl"] .back-btn .icon { transform: scaleX(-1); }
+
+/* Grid children default to min-width: auto, so a wide table would widen the
+   whole page on a phone. min-width: 0 lets the table scroll inside its card. */
+body.storage main > * { min-width: 0; }
+.brand-link { display: flex; align-items: center; gap: 10px; color: inherit; text-decoration: none; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.small { font-size: 12.5px; }
+.btn-icon { display: inline-flex; align-items: center; gap: 8px; }
+.link-btn { border: 0; background: none; color: var(--accent); cursor: pointer;
+            font-weight: 600; margin-inline-start: 10px; padding: 0; }
+a.icon-btn { text-decoration: none; display: inline-flex; align-items: center; color: var(--ink); }
+.count { unicode-bidi: isolate; }
+.icon-btn:disabled { opacity: 0.45; cursor: default; }
+.icon-btn.danger { color: var(--bad-text); }
+/* "Show number of orders" tick box, next to Print. */
+.check-toggle { display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
+                font-size: 13px; color: var(--ink-2); white-space: nowrap; }
+.check-toggle input { width: 16px; height: 16px; accent-color: var(--accent); margin: 0; }
+.tag { font-size: 12px; font-weight: 600; color: var(--ink-2); background: var(--surface-2);
+       padding: 2px 10px; border-radius: 999px; }
+
+/* ---- Start page and the Website hub: big choices ---------------------------- */
+.choice-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.choice {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 10px; min-height: 180px; padding: 24px; text-align: center;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  box-shadow: var(--shadow); color: var(--ink); text-decoration: none;
+  transition: transform 0.1s, border-color 0.1s;
+}
+a.choice:hover { border-color: var(--accent); transform: translateY(-1px); }
+.choice.disabled { opacity: 0.55; cursor: not-allowed; }
+.choice.big { min-height: 240px; }
+.choice-badge {
+  width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center; color: #fff;
+}
+.choice-badge .icon { width: 26px; height: 26px; }
+/* Tile colours echo the board: orange for Trendyol, blue for the website,
+   yellow for items. Decorative identity only; the words carry the meaning. */
+.choice-badge.trendyol { background: var(--badge-2); }
+.choice-badge.website, .choice-badge.orders { background: #2a5bd7; }
+.choice-badge.items { background: #d9a400; }
+.choice-label { font-size: 18px; font-weight: 600; }
+.choice-number { font-size: 44px; font-weight: 700; line-height: 1; letter-spacing: -0.02em;
+                 font-variant-numeric: tabular-nums; }
+.choice .hint { color: var(--accent); font-weight: 600; font-size: 13px; }
+.hub { display: grid; gap: 16px; }
+.packed-link { display: flex; align-items: center; gap: 12px; color: var(--ink);
+               text-decoration: none; font-weight: 600; }
+.packed-link .muted { margin-inline-start: auto; font-weight: 400; }
+.packed-link:hover { border-color: var(--accent); }
+/* The Packed orders button on the orders screens (2026-09-28): blue so it
+   stands out next to the orange Print. The same blue as the Website and
+   Orders tiles; white text on it is 5.9:1, in light and dark mode alike. */
+a.icon-btn.btn-blue { background: #2a5bd7; border-color: #2a5bd7; color: #fff; font-weight: 600; }
+a.icon-btn.btn-blue:hover { background: #2249b0; border-color: #2249b0; }
+.btn-blue .tab-count { background: rgba(255, 255, 255, .22); color: #fff; }
+
+/* ---- Tables ------------------------------------------------------------------ */
+.table-wrap { overflow-x: auto; }
+.pick .item-name, .scan-table .item-name { color: var(--ink); font-weight: 500; }
+.pick .qty, .scan-table .qty { font-weight: 700; font-size: 15px; }
+td.when { white-space: nowrap; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+td.sku { font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* The order groups (1 / 2 / 3+ pieces) are tabs: the shared .segmented
+   pill bar, with each group's count in a small badge. One group shows at a
+   time, full width. */
+/* The row above the order tables: group tabs, OTO sync, "Show date ordered". */
+.orders-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; }
+/* Under the toolbar, the column tickboxes on their own line (2026-10-01). */
+.orders-controls { display: grid; gap: 10px; }
+.column-toggles { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px;
+                  padding-inline-start: 6px; }
+/* OTO sync (2026-09-29): green, as on the board; theme-aware tints. */
+/* Search bar, Scan BOL no. (2026-09-30); OTO sync sits at the far end. */
+.order-search-wrap { position: relative; display: flex; align-items: center; }
+.order-search { width: 240px; max-width: 100%; padding: 7px 34px 7px 14px; border-radius: 999px;
+                border: 1px solid var(--grid); background: var(--surface); color: var(--ink); font: inherit; }
+.order-search::-webkit-search-cancel-button { display: none; }   /* our own ✕ instead */
+.order-search:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.search-clear { position: absolute; inset-inline-end: 6px; border: 0; background: none; cursor: pointer;
+                color: var(--ink-2); font-size: 14px; padding: 4px 6px; border-radius: 999px; }
+.search-clear:hover { background: var(--surface-2); color: var(--ink); }
+.btn-oto { margin-inline-start: auto; }
+.scan-dialog { width: min(92vw, 520px); }
+/* Load onto truck (2026-09-30): the scan box with a camera button, and
+   orders with only some boxes loaded stand out (a box may be forgotten). */
+.load-row { display: flex; gap: 10px; align-items: stretch; flex-wrap: wrap; }
+.load-row .load-input { flex: 1 1 260px; }
+td.partly-loaded { font-weight: 700; white-space: nowrap; }
+td.partly-loaded::before { content: "⚠ "; color: var(--warning); }   /* yellow as a mark, not as text */
+tr.partly-loaded-row td { background: color-mix(in srgb, var(--warning) 8%, transparent); }
+.scan-video-wrap { background: #000; border-radius: 12px; overflow: hidden; margin: 10px 0 6px; }
+.scan-video { display: block; width: 100%; max-height: 60vh; object-fit: cover; }
+.scan-status.error { color: var(--bad-text); font-weight: 600; }
+.btn-oto { background: var(--good-tint); color: var(--good-text); border-color: var(--good-text);
+            font-weight: 600; }
+.btn-oto:hover:not(:disabled) { background: var(--good-text); color: var(--surface); }  /* readable in both themes */
+.btn-oto:disabled { opacity: .6; cursor: progress; }
+td.bol { white-space: nowrap; font-variant-numeric: tabular-nums; }
+/* The BOL cell is dir="ltr" so its letters and digits keep their order; in
+   Arabic it must still line up on the right, under its heading (2026-10-01). */
+[dir="rtl"] td.bol { text-align: right; }
+td.bol a.bol-link { color: var(--ink); text-decoration: underline dotted; }
+td.bol a.bol-link:hover { color: var(--accent); }
+/* "ERROR: ... does not match OTO" under Approve (2026-09-30). */
+.approve-msg.error { color: var(--bad-text); font-weight: 700; }
+.size-tabs button { display: inline-flex; align-items: center; gap: 8px;
+                    font-size: 14px; padding: 8px 16px; }
+.tab-count { background: var(--surface-2); color: var(--ink); border-radius: 999px;
+             padding: 1px 8px; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.size-tabs button[aria-pressed="true"] .tab-count { background: rgba(255, 255, 255, .25); color: #fff; }
+.count-pill { background: var(--surface-2); border-radius: 999px; padding: 2px 10px;
+              font-weight: 700; font-variant-numeric: tabular-nums; }
+/* Order tables are narrow (three side by side), so the item numbers wrap
+   onto a second line rather than pushing the Pieces column out of view. */
+/* Product lines inside an order row: one per line, names level with their
+   item numbers. Names never wrap (that would break the alignment); the cell
+   cuts them with "…" and the full names show on hover. */
+.order-table .line { white-space: nowrap; line-height: 1.6; }
+.order-table td.names { max-width: 320px; }
+.order-table td.names .line { overflow: hidden; text-overflow: ellipsis; color: var(--ink); }
+/* Colour / size of a product line: small tags that never get cut off.
+   In the order tables the NAME shrinks (with "…") before they do. */
+.opt-tags { display: inline-flex; flex-wrap: wrap; gap: 4px; margin-inline-start: 6px; vertical-align: middle; }
+.opt-tag { padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 700; white-space: nowrap;
+           background: var(--surface-2); color: var(--ink); border: 1px solid var(--axis); }
+.opt-cell { font-weight: 700; white-space: nowrap; }
+.opt-line { font-weight: 700; font-size: 13px; color: var(--ink); margin-top: 2px; }
+.order-table td.names .line { display: flex; align-items: center; min-width: 0; }
+.order-table td.names .nm { overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 0 1 auto; }
+.order-table td.names .opt-tags, .order-table td.names .qty-tag { flex: none; }
+.order-table .qty-tag { font-weight: 700; margin-inline-start: 6px; unicode-bidi: isolate; }
+.order-table td.sku { min-width: 70px; }
+.order-table th, .order-table td { padding-inline: 8px; }
+.order-table a { color: var(--ink); font-weight: 600; }
+/* Sort buttons in the table headers: the whole title is clickable, with an
+   arrow — ↕ (not sorted by this), ↑ ascending, ↓ descending. */
+.sort-btn {
+  display: inline-flex; align-items: center; gap: 5px; padding: 0; border: 0;
+  background: none; color: inherit; font: inherit; font-weight: 600; cursor: pointer;
+  white-space: nowrap;
+}
+.sort-btn:hover { color: var(--ink); }
+.sort-btn .arrow { color: var(--muted); font-size: 12px; min-width: 1ch; }
+.sort-btn.active { color: var(--ink); }
+.sort-btn.active .arrow { color: var(--accent); font-size: 14px; }
+th.num .sort-btn { flex-direction: row; }
+
+/* ---- The scan screen ------------------------------------------------------- */
+.scan-layout { display: grid; gap: 16px; }
+.scan-card { display: grid; gap: 8px; }
+.scan-label { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 15px; }
+.scan-input {
+  width: 100%; font-size: 22px; padding: 12px 16px; border-radius: 14px;
+  border: 2px solid var(--accent); background: var(--surface); color: var(--ink);
+  font-variant-numeric: tabular-nums; letter-spacing: 0.04em;
+}
+.scan-input:focus { outline: 3px solid var(--accent-wash); outline-offset: 0; }
+/* The result of the last scan, big enough to read from arm's length.
+   Good/bad always in words too, not colour alone. */
+.scan-msg { min-height: 1.6em; margin: 4px 0 0; font-size: 17px; font-weight: 600; }
+.scan-msg.ok  { color: var(--good-text); }
+.scan-msg.bad { color: var(--bad-text); }
+.scan-tools { display: flex; gap: 8px; flex-wrap: wrap; }
+/* Test labels (2026-09-29): one tile per piece, a real barcode on a white
+   ground (scanners need black on white, in dark mode too). Click = scan. */
+.scan-layout { grid-template-columns: minmax(0, 1fr); }
+.label-grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
+.label-tile { display: grid; gap: 4px; justify-items: center; text-align: center; cursor: pointer;
+              padding: 10px; border-radius: 12px; border: 1px solid var(--border);
+              background: var(--surface-2); color: var(--ink); font: inherit; }
+.label-tile:hover:not(:disabled) { border-color: var(--accent); }
+.label-tile .barcode { display: block; width: 100%; background: #fff; padding: 6px; border-radius: 6px; }
+.label-tile .barcode svg { display: block; width: 100%; height: 48px; }
+.label-code { font: 700 14px ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .06em; }
+.label-item { font-size: 13px; font-weight: 600; }
+.label-opts { font-size: 12px; color: var(--ink-2); }
+.label-tile.used { opacity: .55; cursor: default; }
+.label-used { display: inline-flex; align-items: center; gap: 4px; color: var(--good-text);
+              font-size: 12px; font-weight: 700; }
+.label-used .icon { width: 14px; height: 14px; }
+.packed-labels { margin: 0; color: var(--ink-2); font-size: 13px; overflow-wrap: anywhere; }
+
+.scan-table tr.done td { background: var(--good-tint); }
+.mark { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; }
+.mark .icon { width: 20px; height: 20px; stroke-width: 2.6; }
+.mark.ok { background: var(--good-text); color: #fff; }
+.mark.no { background: var(--bad-tint); color: var(--bad-text); }
+.hand-btn {
+  display: inline-flex; align-items: center; gap: 6px; cursor: pointer; white-space: nowrap;
+  padding: 6px 12px; border-radius: 999px; font-weight: 600;
+  border: 1px solid var(--border); background: var(--surface); color: var(--ink-2);
+}
+.hand-btn.on { background: var(--good-text); border-color: var(--good-text); color: #fff; }
+
+.finish { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+.boxes-field { display: grid; gap: 6px; }
+.boxes-field label { font-weight: 600; font-size: 15px; }
+.boxes-input {
+  width: 120px; font-size: 22px; padding: 8px 12px; border-radius: 12px; text-align: center;
+  border: 1px solid var(--axis); background: var(--surface); color: var(--ink);
+}
+.approve-box { display: grid; justify-items: end; gap: 6px; }
+.approve-btn {
+  display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+  padding: 14px 34px; border: 0; border-radius: 14px; font-size: 18px; font-weight: 700;
+  background: #1e8e3e; color: #fff;
+}
+.approve-btn:hover { background: #177a33; }
+.approve-btn:disabled { opacity: 0.6; cursor: default; }
+.approve-msg { margin: 0; color: var(--ink-2); max-width: 360px; text-align: end; }
+
+.packed-panel { display: grid; justify-items: center; gap: 12px; padding: 36px 22px; text-align: center; }
+.packed-icon { width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center;
+               background: var(--good-text); color: #fff; }
+.packed-icon .icon { width: 34px; height: 34px; stroke-width: 2.6; }
+.packed-text { font-size: 18px; font-weight: 600; margin: 0; }
+.packed-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+
+/* ---- Worker names ------------------------------------------------------------
+   A box of name tags with a text field at the end; × removes a name. Used for
+   "Picked by" on the pick list and "Packed by" on orders. */
+.names-editor {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-height: 40px;
+  padding: 5px 8px; border: 1px solid var(--axis); border-radius: 12px;
+  background: var(--surface); cursor: text; flex: 1 1 280px;
+}
+.names-editor:focus-within { border-color: var(--accent); }
+.name-tags { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.name-tag {
+  display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
+  padding: 2px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 600;
+  background: var(--accent-wash); color: var(--ink);
+}
+.name-x { border: 0; background: none; cursor: pointer; color: var(--ink-2); padding: 0 2px;
+          font-size: 15px; line-height: 1; }
+.name-x:hover { color: var(--bad-text); }
+.names-input { flex: 1 1 120px; min-width: 100px; border: 0; outline: 0; background: none;
+               padding: 4px 2px; font-size: 14px; }
+.names-status { flex-basis: 100%; margin: 0; }
+.names-status:empty { display: none; }
+.assign-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 14px 20px; }
+.assign-row > label { font-weight: 600; }
+.packers-field { flex: 1 1 320px; }
+
+/* Order tables: tick box, "Packed by" cell with its change button, and the
+   bar that appears when orders are ticked. */
+.select-cell { width: 28px; padding-inline-end: 0 !important; }
+.select-cell input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
+.order-table tr.selected td { background: var(--accent-wash); }
+td.workers { white-space: nowrap; }
+td.workers .name-tags { display: inline-flex; vertical-align: middle; }
+.edit-names {
+  border: 1px solid var(--border); background: var(--surface); color: var(--ink-2);
+  border-radius: 8px; padding: 3px 5px; margin-inline-start: 6px; cursor: pointer;
+  vertical-align: middle; display: inline-flex;
+}
+.edit-names .icon { width: 15px; height: 15px; }
+.edit-names:hover { color: var(--accent); border-color: var(--accent); }
+.select-bar {
+  position: sticky; top: 96px; z-index: 4; display: flex; align-items: center; gap: 12px;
+  flex-wrap: wrap; padding: 10px 16px; border-radius: 14px;
+  background: var(--ink); color: var(--surface); box-shadow: var(--shadow);
+}
+.select-bar .icon-btn { background: transparent; color: inherit; border-color: rgba(255,255,255,.35); }
+.packed-by-line { margin: 0; color: var(--ink-2); font-weight: 600; }
+
+/* The names window. */
+.assign-dialog {
+  border: 1px solid var(--border); border-radius: var(--radius); padding: 22px;
+  width: min(92vw, 460px); background: var(--surface); color: var(--ink);
+  box-shadow: 0 10px 40px rgba(0,0,0,.2);
+}
+.assign-dialog::backdrop { background: rgba(0,0,0,.35); }
+.assign-dialog h2 { font-size: 17px; margin-bottom: 4px; }
+.assign-dialog .names-editor { margin: 12px 0 4px; }
+.dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+
+/* ---- Phones ---------------------------------------------------------------- */
+@media (max-width: 720px) {
+  .storage-head { padding-inline: 14px; }
+  .choice.big { min-height: 200px; }
+  .finish { flex-direction: column; align-items: stretch; }
+  .approve-box { justify-items: stretch; }
+  .approve-btn { justify-content: center; }
+  .approve-msg { text-align: start; max-width: none; }
+}
+
+/* ---- Printing ----------------------------------------------------------------
+   The pick list is printed and carried round the storage room. Paper gets:
+   no top bar, buttons or card chrome; black on white whatever the theme; a
+   header saying when it was printed; and an empty column to tick by pen. */
+.print-only { display: none; }
+@media print {
+  @page { margin: 12mm; }
+  :root, :root[data-theme="dark"] {
+    --page: #fff; --surface: #fff; --surface-2: #fff; --ink: #000; --ink-2: #000;
+    --muted: #444; --grid: #999; --border: transparent; --shadow: none;
+  }
+  body { background: #fff; color: #000; font-size: 12pt; }
+  .topbar, .storage-head, #banners, .screen-only, button:not(.sort-btn),
+  .select-cell, .select-bar { display: none !important; }
+  /* On paper: the group on screen only (2026-09-28), under its heading. */
+  .card-head h2 { font-size: 13pt; }
+  .name-tags { gap: 0; }
+  .name-tag { background: none; padding: 0; font-weight: 600; }
+  .name-tag + .name-tag::before { content: ", "; }
+  .picked-by { font-size: 12pt; font-weight: 700; }
+  /* Order tables on paper (2026-09-29: names squeezed to one word per
+     line, "Packed by" cut off at the edge). On screen each product line is
+     a one-line flex row; on paper it is plain text, so the name wraps
+     normally with its tags and "× 1" after it. The table is held to the
+     page width, at a slightly smaller size, and nothing is clipped. */
+  .table-wrap { overflow: visible; }
+  .order-table { width: 100%; font-size: 10pt; }
+  .order-table td.names { max-width: none; }
+  .order-table td.names .line { display: block; white-space: normal; overflow: visible;
+                                line-height: 1.35; margin-bottom: 2mm; }
+  .order-table td.names .line:last-child { margin-bottom: 0; }
+  .order-table td.names .nm { overflow: visible; }
+  .order-table .opt-tag { font-size: 8.5pt; padding: 0 4px; }
+  .order-table .line-sku { font-weight: 700; margin-inline-end: 5px; }
+  .order-table .line-sku::after { content: "·"; font-weight: 400; margin-inline-start: 5px; }
+  .sort-btn { color: #000; } .sort-btn .arrow { display: none; }
+  a { color: #000; text-decoration: none; }        /* order numbers print as plain text */
+  main { padding: 0; }
+  .card { border: 0; padding: 0; box-shadow: none; }
+  .print-only { display: revert; }
+  /* One fact per line (2026-09-30): title, window, "Printed on …",
+     then "Orders: 3", "Boxes: 4", ... */
+  .print-head { display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+                margin-bottom: 10px; font-size: 11pt; }
+  .print-head strong { font-size: 14pt; margin-bottom: 4px; }
+  .print-stats { display: flex; flex-direction: column; gap: 2px; }
+  .print-stat { font-weight: 600; }
+  table { font-size: 11pt; }
+  thead { display: table-header-group; }          /* repeat the header on every page */
+  tr { break-inside: avoid; }
+  th, td { border-bottom: 1px solid #999; padding: 6px 8px; }
+  thead th { background: none; border-bottom: 2px solid #000; }
+  td.tick { width: 14mm; }
+  td.tick::after { content: ""; display: inline-block; width: 5mm; height: 5mm; border: 1px solid #000; }
+  /* Shipped orders: the delivery company's driver signs (2026-10-01). */
+  .sign-block { display: grid; gap: 10mm; margin-top: 12mm; break-inside: avoid; font-size: 11pt; }
+  .sign-block p { margin: 0; font-weight: 600; }
+  .sign-line { display: flex; align-items: flex-end; gap: 4mm; }
+  .sign-blank { flex: 0 1 90mm; border-bottom: 1px solid #000; height: 6mm; }
+}

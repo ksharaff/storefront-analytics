@@ -1,0 +1,70 @@
+<!doctype html>
+<!-- The dashboard shell. app.js fills in every word and number; this file is
+     only structure. lang/dir are set by app.js from the chosen language. -->
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Storefront Analytics</title>
+  <!-- Browser tab and phone home-screen icons: the same logo. -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/img/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="64x64" href="/static/img/logo-64.png">
+  <link rel="apple-touch-icon" href="/static/img/apple-touch-icon.png">
+  <link rel="stylesheet" href="/static/styles.css">
+  <!-- Apply a saved dark-mode choice before the page paints, so someone who
+       chose dark doesn't see a flash of light first. Light is the default. -->
+  <script>
+    try { if (localStorage.getItem("theme") === "dark") document.documentElement.dataset.theme = "dark"; }
+    catch (e) { /* storage blocked: stay light */ }
+  </script>
+  <!-- Chart.js 4.5.1 (MIT), bundled in the repo so the dashboard works
+       without internet access and never loads code from a third party. -->
+  <script src="/static/vendor/chart.umd.min.js" defer></script>
+  <script type="module" src="/static/app.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <!-- The brand mark (a placeholder icon generated for this showcase), background speckles removed and
+           trimmed; 64 px, with a 128 px version for sharp high-DPI screens.
+           Decorative here: the name next to it says what this is. -->
+      <img class="brand-mark" src="/static/img/logo-64.png"
+           srcset="/static/img/logo-64.png 1x, /static/img/logo-128.png 2x"
+           width="32" height="32" alt="">
+      <span class="brand-name" data-t="title"></span>
+    </div>
+
+    <!-- Section navigation: a pill group; the active section is the dark pill. -->
+    <nav id="nav" class="nav-pills" role="tablist"></nav>
+
+    <div class="topbar-end">
+      <!-- Freshness: "Synced 2 min ago", with a warning if it gets stale. -->
+      <span id="freshness" class="fresh" aria-live="polite"></span>
+      <button id="theme-toggle" class="icon-btn theme" type="button"></button>
+      <button id="lang-toggle" class="icon-btn" type="button"></button>
+    </div>
+  </header>
+
+  <!-- Page heading on the left, the period controls on the right. One filter
+       row above everything it scopes: every section re-renders against it. -->
+  <section class="page-head">
+    <div>
+      <h1 id="page-title"></h1>
+      <p id="page-sub" class="muted"></p>
+    </div>
+    <div class="period-box" role="group" id="period-group">
+      <div id="period-buttons" class="segmented"></div>
+      <form id="custom-range" class="custom-range" hidden>
+        <label><span data-t="from"></span> <input type="date" id="custom-start" required></label>
+        <label><span data-t="to"></span> <input type="date" id="custom-end" required></label>
+        <button type="submit" class="btn-accent" data-t="apply"></button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Period notes and errors appear here, above the numbers they qualify. -->
+  <div id="banners"></div>
+
+  <main id="content" aria-live="polite"></main>
+</body>
+</html>
